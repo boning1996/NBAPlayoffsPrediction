@@ -1,11 +1,17 @@
 from sklearn import model_selection
 from sklearn import linear_model
 from sklearn import tree
+from sklearn import svm
 import numpy as np
 from nba_py import constants
 
 
 def SpiltData():
+    teams_enumerate = {}
+    num = 0
+    for t in constants.TEAMS:
+        teams_enumerate[t] = num
+        num += 1
     data = open('2015-16_reg.txt').readlines()
     train, test = model_selection.train_test_split(data, test_size=0.2)
     train_x = []
@@ -15,7 +21,7 @@ def SpiltData():
     for i in range(len(train)):
         data = train[i].strip()
         record = data.split(' ')
-        train_x.append([int(constants.TEAMS[record[0]]['id']), int(constants.TEAMS[record[1]]['id'])])
+        train_x.append([teams_enumerate[record[0]], teams_enumerate[record[1]]])
         if int(record[2]) - int(record[3]) > 0:
             train_y.append(1)
         else:
@@ -24,7 +30,7 @@ def SpiltData():
     for i in range(len(test)):
         data = test[i].strip()
         record = data.split(' ')
-        test_x.append([int(constants.TEAMS[record[0]]['id']), int(constants.TEAMS[record[1]]['id'])])
+        test_x.append([teams_enumerate[record[0]], teams_enumerate[record[1]]])
         if int(record[2]) - int(record[3]) > 0:
             test_y.append(1)
         else:
@@ -100,10 +106,19 @@ def LogisticRegression(train_x, train_y, test_x, test_y):
 
 
 def DecisionTree(train_x, train_y, test_x, test_y):
-    dt = tree.DecisionTreeClassifier(max_depth=10, criterion="entropy")
+    dt = tree.DecisionTreeClassifier(max_depth=9, criterion="entropy")
     dt.fit(train_x, train_y)
     predictions = dt.predict(test_x)
     print(predictions)
+    print(dt.score(test_x, test_y))
+
+
+def SupportVectorMachine(train_x, train_y, test_x, test_y):
+    clf = svm.SVC()
+    clf.fit(train_x, train_y)
+    predictions = clf.predict(test_x)
+    print(predictions)
+    print(clf.score(test_x, test_y))
 
 
 
@@ -120,7 +135,8 @@ if __name__ == '__main__':
     # LinearRegression(train_x, train_y, test_x, test_y)
     # MaximumLikelihood(train_x, train_y, test_x, test_y)
     # LogisticRegression(train_x, train_y, test_x, test_y)
-    DecisionTree(train_x, train_y, test_x, test_y)
+    # DecisionTree(train_x, train_y, test_x, test_y)
+    SupportVectorMachine(train_x, train_y, test_x, test_y)
 
 
 
