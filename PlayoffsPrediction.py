@@ -23,21 +23,37 @@ def SpiltData():
         record = data.split(' ')
         train_x.append([teams_enumerate[record[0]], teams_enumerate[record[1]]])
         if int(record[2]) - int(record[3]) > 0:
-            train_y.append(1)
+            train_y.append([1])
         else:
-            train_y.append(0)
+            train_y.append([0])
 
     for i in range(len(test)):
         data = test[i].strip()
         record = data.split(' ')
         test_x.append([teams_enumerate[record[0]], teams_enumerate[record[1]]])
         if int(record[2]) - int(record[3]) > 0:
-            test_y.append(1)
+            test_y.append([1])
         else:
-            test_y.append(0)
+            test_y.append([0])
     # data format: [home_team_id, away_team_id, 1 if home_team_win else 0]
 
     return np.array(train_x), np.array(train_y), np.array(test_x), np.array(test_y)
+
+
+def normalize(data):
+    d = data.shape[1]
+    if d == 1:
+        mean = np.mean(data)
+        std = np.sqrt(np.var(data))
+        return (data - mean)/std
+    else:
+        mean = np.mean(data, axis=0)
+        var = np.cov(data.T)
+        w, v = np.linalg.eig(var)
+        A = np.diag(w**(-1/2))
+        s = np.matmul(np.matmul(v, A), v.T)
+        return np.matmul(s, (data - mean).T).T
+
 
 def LinearRegression(train_x, train_y, test_x, test_y):
     lg = linear_model.LinearRegression()
@@ -114,24 +130,18 @@ def DecisionTree(train_x, train_y, test_x, test_y):
 
 
 def SupportVectorMachine(train_x, train_y, test_x, test_y):
-    clf = svm.SVC()
+    clf = svm.SVC(C=10)
     clf.fit(train_x, train_y)
     predictions = clf.predict(test_x)
     print(predictions)
     print(clf.score(test_x, test_y))
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     train_x, train_y, test_x, test_y = SpiltData()
+    train_x = normalize(train_x)
+    # train_y = normalize(train_y)
+    test_x = normalize(test_x)
+    # test_y = normalize(test_y)
     # LinearRegression(train_x, train_y, test_x, test_y)
     # MaximumLikelihood(train_x, train_y, test_x, test_y)
     # LogisticRegression(train_x, train_y, test_x, test_y)
